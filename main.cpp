@@ -20,11 +20,7 @@ Byte ECB_AES128_key[] = {
 int main() {
 
   Cipher<128>::CipherKey key;
-  for (int c = 0; c < 4; ++c) {
-    for (int r = 0; r < 4; ++r) {
-      key[c][r] = ECB_AES128_key[4 * c + r];
-    }
-  }
+  key.read(ECB_AES128_key);
 
   ModeECB m(key);
 
