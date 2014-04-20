@@ -89,6 +89,31 @@ struct ModeECBTest {
                     memcmp(AES128_ciphertext, actualCiphertext, 4 * 4 * Cipher<128>::block_size) == 0);
   }
 
+  static void AES128DecryptionTest() {
+    Cipher<128>::CipherKey key;
+    key.read(AES128_key);
+
+    ModeECB m(key);
+
+    std::vector<Block> in;
+    for (int i = 0; i < 4 ; ++i) {
+      Block b;
+      b.read(&AES128_ciphertext[i * 4 * Cipher<128>::block_size]);
+      in.push_back(b);
+    }
+
+    std::vector<Block> out(4);
+    m.decrypt(in.begin(), in.end(), out.begin());
+
+    Byte actualPlaintext[4 * 4 * Cipher<128>::block_size];
+    for (int i = 0; i < 4 ; ++i) {
+      out[i].write(&actualPlaintext[i * 4 * Cipher<128>::block_size]);
+    }
+
+    Galileo::assert("Expected Plaintext == Actual Plaintext",
+                    memcmp(AES128_plaintext, actualPlaintext, 4 * 4 * Cipher<128>::block_size) == 0);
+  }
+
 
 };
 
@@ -119,6 +144,7 @@ Byte ModeECBTest::AES128_ciphertext[] = {
 
 int main() {
   Galileo::test("AES128EncryptionTest", ModeECBTest::AES128EncryptionTest);
+  Galileo::test("AES128DecryptionTest", ModeECBTest::AES128DecryptionTest);
 
   return Galileo::run("ModeECB");
 }

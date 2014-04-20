@@ -33,9 +33,32 @@ struct ModeECB {
   OutputIterator encrypt(InputIterator inputFirst,
                          InputIterator inputEnd,
                          OutputIterator output
-                         ) {
+                         ) const {
     for (auto it = inputFirst; it != inputEnd; ++it, ++output) {
       *output = Cipher<128>::encrypt(expandedKey, *it);
+    }
+    return output;
+  }
+  template <typename InputIterator,
+            typename OutputIterator,
+            // Checks if the iterators are for `Block` type
+            // TODO change `Block`(AES) to generic block type
+            // TODO check for iterator constraints
+            // TODO add unit tests for failed constraint compilation failures
+            class = typename enable_if<is_same<typename iterator_traits<InputIterator>::value_type,
+                                               Block
+                                               >::value &&
+                                       is_same<typename iterator_traits<OutputIterator>::value_type,
+                                               Block
+                                               >::value
+                                       >::type
+            >
+  OutputIterator decrypt(InputIterator inputFirst,
+                         InputIterator inputEnd,
+                         OutputIterator output
+                         ) const {
+    for (auto it = inputFirst; it != inputEnd; ++it, ++output) {
+      *output = Cipher<128>::decrypt(expandedKey, *it);
     }
     return output;
   }
