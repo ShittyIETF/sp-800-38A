@@ -1,3 +1,4 @@
+#include <cstdarg>
 #include <functional>
 #include <string>
 #include <vector>
@@ -22,10 +23,10 @@ struct Galileo {
   }
 
   static int run(const char *testClassName) {
-    std::printf("Running tests for class [%s]\n", testClassName);
+    printH<'='>("Running tests for class [%s]\n", testClassName);
 
     for (Test& t: allTests()) {
-      std::printf("Running test [%s]\n", t.name.c_str());
+      printH<'-'>("Running test [%s]\n", t.name.c_str());
 
       currentTestFailed() = false;
       t.fn();
@@ -37,6 +38,22 @@ struct Galileo {
   }
 
  private:
+  // like-printf, fills next line with char patter
+  // format is expected to print a line ending with newline
+  template <int ch>
+  static int printH(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    int len = vprintf(fmt, args);
+    for (int i = 1; i < len; ++i) {
+      putchar(ch);
+    }
+    putchar('\n');
+    va_end(args);
+
+    return len * 2;
+  }
+
   struct Test {
     std::string name;
     std::function<void(void)> fn;
