@@ -35,8 +35,8 @@ struct ModeECB {
                          OutputIterator output
                          ) {
     for (auto it = inputFirst; it != inputEnd; ++it, ++output) {
-      // Dump input data directly
       *output = Cipher<128>::encrypt(expandedKey, *it);
     }
+    return output;
   }
 };
