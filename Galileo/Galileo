@@ -15,25 +15,28 @@ struct Galileo {
 
   static void assert(const char *assertionName, bool assertionValue) {
     if (assertionValue) {
-      // Assertion is fine
-      return;
+      return; // Assertion is fine
     }
-
-    std::printf("Assertion [%s] failed\n", assertionName);
+    currentFailures().push_back(assertionName);
     currentTestFailed() = true;
   }
 
+  // TODO color-codes are a mess, needs cleanup
   static int run(const char *testClassName) {
     printTestHeader(testClassName);
 
     for (Test& t: allTests()) {
       currentTestFailed() = false;
+      currentFailures().clear();
       t.fn();
 
       // Print test status
-      printf("\033[1;34m%s\033[0m -> %s\n", t.name.c_str(),
-                             currentTestFailed() ? "\033[1;31mFAIL\033[0m"
-                                                 : "\033[1;32mPASS\033[0m");
+      printf("\033[1;34m%s\033[0m", t.name.c_str());
+      printf(" -> %s\n", currentTestFailed() ? "\033[1;31mFAIL\033[0m"
+                                             : "\033[1;32mPASS\033[0m");
+      for (const string &failedAssert: currentFailures()) {
+        printf("\033[1;31m!! Assertion failed\033[0m [%s]\n", failedAssert.c_str());
+      }
     }
 
     return 0;
@@ -62,6 +65,11 @@ struct Galileo {
   static bool& currentTestFailed() {
     static bool b;
     return b;
+  }
+
+  static vector<string>& currentFailures() {
+    static vector<string> v;
+    return v;
   }
 };
 
