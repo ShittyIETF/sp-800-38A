@@ -1,4 +1,5 @@
 #include <cstdarg>
+#include <cstring>
 #include <functional>
 #include <string>
 #include <vector>
@@ -23,35 +24,30 @@ struct Galileo {
   }
 
   static int run(const char *testClassName) {
-    printH<'='>("Running tests for class [%s]\n", testClassName);
+    printTestHeader(testClassName);
 
     for (Test& t: allTests()) {
-      printH<'-'>("Running test [%s]\n", t.name.c_str());
-
       currentTestFailed() = false;
       t.fn();
 
-      printf("[%s] -> %s\n", t.name.c_str(), currentTestFailed() ? "FAIL" : "PASS");
+      // Print test status
+      printf("\033[1;34m%s\033[0m -> %s\n", t.name.c_str(),
+                             currentTestFailed() ? "\033[1;31mFAIL\033[0m"
+                                                 : "\033[1;32mPASS\033[0m");
     }
 
     return 0;
   }
 
  private:
-  // like-printf, fills next line with char patter
-  // format is expected to print a line ending with newline
-  template <int ch>
-  static int printH(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    int len = vprintf(fmt, args);
-    for (int i = 1; i < len; ++i) {
-      putchar(ch);
+  static void printTestHeader(const char *className) {
+    std::printf("Tests for \033[1;34m%s\033[0m\n", className);
+    std::printf("==========");
+    int len = (int)strlen(className);
+    for (int i = 0; i < len; ++i) {
+      putchar('=');
     }
     putchar('\n');
-    va_end(args);
-
-    return len * 2;
   }
 
   struct Test {
