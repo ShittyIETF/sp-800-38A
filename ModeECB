@@ -1,0 +1,42 @@
+#include <iterator>
+#include <type_traits>
+
+using namespace std;
+
+// Most basic mode, leaks information, should never be used
+
+struct ModeECB {
+
+  Cipher<128>::CipherKeyExpansion expandedKey;
+
+  // TODO change Key(AES) to generic Key type
+  // TODO support multiple key/block sizes with template system
+  ModeECB(Cipher<128>::CipherKey key) {
+    expandedKey = Cipher<128>::expandKey(key);
+  }
+
+  // `Block` iterators
+  template <typename InputIterator,
+            typename OutputIterator,
+            // Checks if the iterators are for `Block` type
+            // TODO change `Block`(AES) to generic block type
+            // TODO check for iterator constraints
+            // TODO add unit tests for failed constraint compilation failures
+            class = typename enable_if<is_same<typename iterator_traits<InputIterator>::value_type,
+                                               Block
+                                               >::value &&
+                                       is_same<typename iterator_traits<OutputIterator>::value_type,
+                                               Block
+                                               >::value
+                                       >::type
+            >
+  OutputIterator encrypt(InputIterator inputFirst,
+                         InputIterator inputEnd,
+                         OutputIterator output
+                         ) {
+    for (auto it = inputFirst; it != inputEnd; ++it) {
+      // Dump input data directly
+      *output++ = Cipher<128>::encrypt(expandedKey, *it++);
+    }
+  }
+};
