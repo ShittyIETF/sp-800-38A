@@ -1,0 +1,75 @@
+#include <cstdarg>
+#include <cstring>
+#include <functional>
+#include <string>
+#include <vector>
+
+// Simple header-only unit testing framework
+struct Galileo {
+  static void test(const char *testName, std::function<void(void)> testFn) {
+    Test t;
+    t.name = testName;
+    t.fn = testFn;
+    allTests().push_back(t);
+  }
+
+  static void assert(const char *assertionName, bool assertionValue) {
+    if (assertionValue) {
+      return; // Assertion is fine
+    }
+    currentFailures().push_back(assertionName);
+    currentTestFailed() = true;
+  }
+
+  // TODO color-codes are a mess, needs cleanup
+  static int run(const char *testClassName) {
+    printTestHeader(testClassName);
+
+    for (Test& t: allTests()) {
+      currentTestFailed() = false;
+      currentFailures().clear();
+      t.fn();
+
+      // Print test status
+      printf("\033[1;34m%s\033[0m", t.name.c_str());
+      printf(" -> %s\n", currentTestFailed() ? "\033[1;31mFAIL\033[0m"
+                                             : "\033[1;32mPASS\033[0m");
+      for (const string &failedAssert: currentFailures()) {
+        printf("\033[1;31m!! Assertion failed\033[0m [%s]\n", failedAssert.c_str());
+      }
+    }
+
+    return 0;
+  }
+
+ private:
+  static void printTestHeader(const char *className) {
+    std::printf("Tests for \033[1;34m%s\033[0m\n", className);
+    std::printf("==========");
+    int len = (int)strlen(className);
+    for (int i = 0; i < len; ++i) {
+      putchar('=');
+    }
+    putchar('\n');
+  }
+
+  struct Test {
+    std::string name;
+    std::function<void(void)> fn;
+  };
+
+  static std::vector<Test>& allTests() {
+    static std::vector<Test> allTestsStatic;
+    return allTestsStatic;
+  }
+  static bool& currentTestFailed() {
+    static bool b;
+    return b;
+  }
+
+  static vector<string>& currentFailures() {
+    static vector<string> v;
+    return v;
+  }
+};
+

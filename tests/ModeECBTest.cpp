@@ -1,58 +1,7 @@
 #include "AES/Global"
 #include "ModeECB"
 
-#include <functional>
-#include <string>
-#include <vector>
-// Name of the greatest test framework
-struct Galileo {
-  static void test(const char *testName, std::function<void(void)> testFn) {
-    Test t;
-    t.name = testName;
-    t.fn = testFn;
-    allTests().push_back(t);
-  }
-
-  static void assert(const char *assertionName, bool assertionValue) {
-    if (assertionValue) {
-      // Assertion is fine
-      return;
-    }
-
-    std::printf("Assertion [%s] failed\n", assertionName);
-    currentTestFailed() = true;
-  }
-
-  static int run(const char *testClassName) {
-    std::printf("Running tests for class [%s]\n", testClassName);
-
-    for (Test& t: allTests()) {
-      std::printf("Running test [%s]\n", t.name.c_str());
-
-      currentTestFailed() = false;
-      t.fn();
-
-      printf("[%s] -> %s\n", t.name.c_str(), currentTestFailed() ? "FAIL" : "PASS");
-    }
-
-    return 0;
-  }
-
- private:
-  struct Test {
-    std::string name;
-    std::function<void(void)> fn;
-  };
-
-  static std::vector<Test>& allTests() {
-    static std::vector<Test> allTestsStatic;
-    return allTestsStatic;
-  }
-  static bool& currentTestFailed() {
-    static bool b;
-    return b;
-  }
-};
+#include "Galileo/Galileo"
 
 #include <cstring>
 using namespace std;
