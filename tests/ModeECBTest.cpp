@@ -11,13 +11,16 @@ struct ModeECBTest {
   static Byte AES128_key[];
   static Byte AES128_plaintext[];
   static Byte AES128_ciphertext[];
+  static Byte AES192_key[];
+  static Byte AES192_plaintext[];
+  static Byte AES192_ciphertext[];
 
 
   static void AES128EncryptionTest() {
     Cipher<128>::CipherKey key;
     key.read(AES128_key);
 
-    ModeECB m(key);
+    ModeECB<128> m(key);
 
     std::vector<Block> in;
     for (int i = 0; i < 4 ; ++i) {
@@ -42,7 +45,7 @@ struct ModeECBTest {
     Cipher<128>::CipherKey key;
     key.read(AES128_key);
 
-    ModeECB m(key);
+    ModeECB<128> m(key);
 
     std::vector<Block> in;
     for (int i = 0; i < 4 ; ++i) {
@@ -63,7 +66,55 @@ struct ModeECBTest {
                     memcmp(AES128_plaintext, actualPlaintext, 4 * 4 * Cipher<128>::block_size) == 0);
   }
 
+  static void AES192EncryptionTest() {
+    Cipher<192>::CipherKey key;
+    key.read(AES192_key);
 
+    ModeECB<192> m(key);
+
+    std::vector<Block> in;
+    for (int i = 0; i < 4 ; ++i) {
+      Block b;
+      b.read(&AES192_plaintext[i * 4 * Cipher<192>::block_size]);
+      in.push_back(b);
+    }
+
+    std::vector<Block> out(4);
+    m.encrypt(in.begin(), in.end(), out.begin());
+
+    Byte actualCiphertext[4 * 4 * Cipher<192>::block_size];
+    for (int i = 0; i < 4 ; ++i) {
+      out[i].write(&actualCiphertext[i * 4 * Cipher<192>::block_size]);
+    }
+
+    Galileo::assert("Expected Ciphertext == Actual Ciphertext",
+                    memcmp(AES192_ciphertext, actualCiphertext, 4 * 4 * Cipher<192>::block_size) == 0);
+  }
+
+  static void AES192DecryptionTest() {
+    Cipher<192>::CipherKey key;
+    key.read(AES192_key);
+
+    ModeECB<192> m(key);
+
+    std::vector<Block> in;
+    for (int i = 0; i < 4 ; ++i) {
+      Block b;
+      b.read(&AES192_ciphertext[i * 4 * Cipher<192>::block_size]);
+      in.push_back(b);
+    }
+
+    std::vector<Block> out(4);
+    m.decrypt(in.begin(), in.end(), out.begin());
+
+    Byte actualPlaintext[4 * 4 * Cipher<192>::block_size];
+    for (int i = 0; i < 4 ; ++i) {
+      out[i].write(&actualPlaintext[i * 4 * Cipher<192>::block_size]);
+    }
+
+    Galileo::assert("Expected Plaintext == Actual Plaintext",
+                    memcmp(AES192_plaintext, actualPlaintext, 4 * 4 * Cipher<192>::block_size) == 0);
+  }
 };
 
 Byte ModeECBTest::AES128_key[] = {
@@ -91,9 +142,37 @@ Byte ModeECBTest::AES128_ciphertext[] = {
   0x04, 0x72, 0x5d, 0xd4,
 };
 
+Byte ModeECBTest::AES192_key[] = {
+  0x8e, 0x73, 0xb0, 0xf7, 0xda, 0x0e, 0x64, 0x52, 0xc8, 0x10,
+  0xf3, 0x2b, 0x80, 0x90, 0x79, 0xe5, 0x62, 0xf8, 0xea, 0xd2,
+  0x52, 0x2c, 0x6b, 0x7b,
+};
+Byte ModeECBTest::AES192_plaintext[] = {
+  0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d,
+  0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a, 0xae, 0x2d, 0x8a, 0x57,
+  0x1e, 0x03, 0xac, 0x9c, 0x9e, 0xb7, 0x6f, 0xac, 0x45, 0xaf,
+  0x8e, 0x51, 0x30, 0xc8, 0x1c, 0x46, 0xa3, 0x5c, 0xe4, 0x11,
+  0xe5, 0xfb, 0xc1, 0x19, 0x1a, 0x0a, 0x52, 0xef, 0xf6, 0x9f,
+  0x24, 0x45, 0xdf, 0x4f, 0x9b, 0x17, 0xad, 0x2b, 0x41, 0x7b,
+  0xe6, 0x6c, 0x37, 0x10,
+};
+Byte ModeECBTest::AES192_ciphertext[] = {
+  0xbd, 0x33, 0x4f, 0x1d, 0x6e, 0x45, 0xf2, 0x5f, 0xf7, 0x12,
+  0xa2, 0x14, 0x57, 0x1f, 0xa5, 0xcc, 0x97, 0x41, 0x04, 0x84,
+  0x6d, 0x0a, 0xd3, 0xad, 0x77, 0x34, 0xec, 0xb3, 0xec, 0xee,
+  0x4e, 0xef, 0xef, 0x7a, 0xfd, 0x22, 0x70, 0xe2, 0xe6, 0x0a,
+  0xdc, 0xe0, 0xba, 0x2f, 0xac, 0xe6, 0x44, 0x4e, 0x9a, 0x4b,
+  0x41, 0xba, 0x73, 0x8d, 0x6c, 0x72, 0xfb, 0x16, 0x69, 0x16,
+  0x03, 0xc1, 0x8e, 0x0e,
+};
+
+
+
 int main() {
   Galileo::test("AES128EncryptionTest", ModeECBTest::AES128EncryptionTest);
   Galileo::test("AES128DecryptionTest", ModeECBTest::AES128DecryptionTest);
+  Galileo::test("AES192EncryptionTest", ModeECBTest::AES192EncryptionTest);
+  Galileo::test("AES192DecryptionTest", ModeECBTest::AES192DecryptionTest);
 
   return Galileo::run("ModeECB");
 }

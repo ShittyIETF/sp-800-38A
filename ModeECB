@@ -5,14 +5,16 @@ using namespace std;
 
 // Most basic mode, leaks information, should never be used
 
+// TODO Should be a cipher_traits struct, instead of seperate individual parameters
+template <int KeySize>
 struct ModeECB {
 
-  Cipher<128>::CipherKeyExpansion expandedKey;
+  typename Cipher<KeySize>::CipherKeyExpansion expandedKey;
 
   // TODO change Key(AES) to generic Key type
   // TODO support multiple key/block sizes with template system
-  ModeECB(Cipher<128>::CipherKey key) {
-    expandedKey = Cipher<128>::expandKey(key);
+  ModeECB(typename Cipher<KeySize>::CipherKey const &key) {
+    expandedKey = Cipher<KeySize>::expandKey(key);
   }
 
   // `Block` iterators
@@ -35,7 +37,7 @@ struct ModeECB {
                          OutputIterator output
                          ) const {
     for (auto it = inputFirst; it != inputEnd; ++it, ++output) {
-      *output = Cipher<128>::encrypt(expandedKey, *it);
+      *output = Cipher<KeySize>::encrypt(expandedKey, *it);
     }
     return output;
   }
@@ -58,7 +60,7 @@ struct ModeECB {
                          OutputIterator output
                          ) const {
     for (auto it = inputFirst; it != inputEnd; ++it, ++output) {
-      *output = Cipher<128>::decrypt(expandedKey, *it);
+      *output = Cipher<KeySize>::decrypt(expandedKey, *it);
     }
     return output;
   }
