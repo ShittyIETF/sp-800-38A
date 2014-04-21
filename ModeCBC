@@ -3,17 +3,20 @@
 
 using namespace std;
 
-// Most basic mode, leaks information, should never be used
+// Cipher Block Chaining, used with an Initialization Vector of Block size
 
 // TODO Should be a cipher_traits struct, instead of seperate individual parameters
 template <int KeySize>
-struct ModeECB {
+struct ModeCBC {
 
   typename Cipher<KeySize>::CipherKeyExpansion expandedKey;
+  Block iv;
 
   // TODO change Key(AES) to generic Key type
-  ModeECB(typename Cipher<KeySize>::CipherKey const &key) {
+  ModeCBC(typename Cipher<KeySize>::CipherKey const &key,
+          Block const &initializationVector) {
     expandedKey = Cipher<KeySize>::expandKey(key);
+    iv = initializationVector;
   }
 
   // `Block` iterators
@@ -35,8 +38,18 @@ struct ModeECB {
                          InputIterator inputEnd,
                          OutputIterator output
                          ) const {
+    Block blockChain = iv;
     for (auto it = inputFirst; it != inputEnd; ++it, ++output) {
-      *output = Cipher<KeySize>::encrypt(expandedKey, *it);
+      // Add iv (from chain) to input block
+      Block in = *it;
+      for (int c = 0; c < 4; ++c) {
+        for (int r = 0; r < 4; ++r) {
+          in[c][r] ^= blockChain[c][r];
+        }
+      }
+      // Put the result into BC
+      blockChain = Cipher<KeySize>::encrypt(expandedKey, in);
+      *output = blockChain;
     }
     return output;
   }
@@ -58,8 +71,17 @@ struct ModeECB {
                          InputIterator inputEnd,
                          OutputIterator output
                          ) const {
+    Block blockChain = iv;
     for (auto it = inputFirst; it != inputEnd; ++it, ++output) {
-      *output = Cipher<KeySize>::decrypt(expandedKey, *it);
+      Block nextChain = *it;
+      Block out = Cipher<KeySize>::decrypt(expandedKey, nextChain);
+      for (int c = 0; c < 4; ++c) {
+        for (int r = 0; r < 4; ++r) {
+          out[c][r] ^= blockChain[c][r];
+        }
+      }
+      *output = out;
+      blockChain = nextChain;
     }
     return output;
   }
